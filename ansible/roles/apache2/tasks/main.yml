@@ -1,0 +1,46 @@
+---
+- name: Install Apache2
+  apt: pkg=apache2 state=installed update_cache=true
+  register: apache2installed
+  notify:
+    - Start Apache2
+
+- name: Enable dav module
+  when: apache2installed|success
+  command: a2enmod dav
+
+- name: Enable dav_fs module
+  when: apache2installed|success
+  command: a2enmod dav_fs
+
+- name: Create DavLock file
+  when: apache2installed|success
+  copy: src=DavLock dest=/var/www/DavLock owner=www-data group=www-data
+
+- name: Create WebDAV folder
+  when: apache2installed|success
+  file: dest={{ webdav }} mode=755 state=directory owner=www-data group=www-data recurse=yes
+
+- name: Install Apache2-utils for Digest Authentication
+  apt: pkg=apache2-utils state=installed update_cache=true
+  register: utilsinstalled
+
+- name: Generate user password
+  when: utilsinstalled|success
+  command: htpasswd -c /etc/apache2/users.password webdav {{ username }}
+  register: passgenerated
+
+- name: Passwd file permissions
+  when: passgenerated|success
+  file: dest=/etc/apache2/users.password owner=www-data group=www-data mode=0640
+
+- name: Add Apache2 config
+  when: passgenerated|success
+  copy: src=000-default.conf dest=/etc/apache2/sites-available/000-default.conf owner=root group=root
+
+- name: Enable auth_digest module
+  when: passgenerated|success
+  command: a2enmod auth_digest
+  notify:
+    - Reload Apache2
+
