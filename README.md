@@ -19,7 +19,7 @@
     ...
 
 
-### Choice username for digest authentication
+### Choice username for basic authentication
 
     Change ansible/roles/apache2/vars/main.yml
 
