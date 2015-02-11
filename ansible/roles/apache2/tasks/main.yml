@@ -27,7 +27,7 @@
 
 - name: Generate user password
   when: utilsinstalled|success
-  command: htpasswd -c /etc/apache2/users.password webdav {{ username }}
+  command: htpasswd -c /etc/apache2/users.password {{ username }}
   register: passgenerated
 
 - name: Passwd file permissions
